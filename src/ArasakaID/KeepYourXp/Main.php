@@ -16,7 +16,7 @@ class Main extends PluginBase implements Listener
     private const DROPPED_XP = "droppedXp";
     private const REAL_XP = "realXp";
 
-    public function onEnable()
+    public function onEnable(): void
     {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->updateConfig();
@@ -41,7 +41,7 @@ class Main extends PluginBase implements Listener
             if ($type === self::DROPPED_XP) {
                 $this->playerXp[$player->getName()] = $event->getXpDropAmount();
             } elseif ($type === self::REAL_XP) {
-                $this->playerXp[$player->getName()] = $player->getCurrentTotalXp();
+                $this->playerXp[$player->getName()] = $player->getXpManager()->getCurrentTotalXp();
             }
             $event->setXpDropAmount(0);
         }
@@ -55,11 +55,11 @@ class Main extends PluginBase implements Listener
         if($this->getConfig()->get("keepPlayerXp")) {
             $player = $event->getPlayer();
             $this->getScheduler()->scheduleDelayedTask(new ClosureTask(
-                function (int $currentTick) use ($player): void {
-                    $player->getXpLevel();
+                function () use ($player): void {
+                    $player->getXpManager()->getXpLevel();
                     if (isset($this->playerXp[$player->getName()])) {
                         if ($player->isOnline()) {
-                            $player->addXp($this->playerXp[$player->getName()]);
+                            $player->getXpManager()->addXp($this->playerXp[$player->getName()]);
                             $player->sendMessage(TextFormat::colorize($this->getConfig()->get("playerRespawnMessage")));
                         }
                         unset($this->playerXp[$player->getName()]);
